@@ -32,12 +32,16 @@ NOISE = ("uuu_", "sprite", ".m3u8", "cover", "avatar", ".jpg", ".png",
 
 
 def _playwright_chromium():
-    """Playwright 下载的 chromium 也是完整浏览器，能当系统 chromium 用。
-    这样即使 sync_playwright 那套 API 出问题，CDP 这条路还兜得住。"""
-    import glob
+    """Playwright 下载的 chromium 是完整浏览器，一样能开
+    --remote-debugging-port，可以当系统 chromium 用。
+
+    为什么需要这个兜底：服务器上经常只装了 Playwright、没装 apt 的
+    chromium。之前 find_chromium 只查 PATH，结果 Playwright 明明装好了
+    却报「没找到 chromium」——抖音直接不能用。"""
     base = os.path.join(os.path.expanduser("~"), ".cache", "ms-playwright")
     if not os.path.isdir(base):
         return ""
+    import glob
     for pat in ("chromium-*/chrome-linux/chrome",
                 "chromium-*/chrome-linux64/chrome",
                 "chromium-*/chrome-mac/Chromium.app/Contents/MacOS/Chromium",
@@ -69,6 +73,7 @@ def find_chromium():
     for p in candidates:
         if os.path.isfile(p):
             return p
+
     return ""
 
 

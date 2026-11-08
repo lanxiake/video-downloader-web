@@ -1,0 +1,2 @@
+yt-dlp>=2026.10.26
+websocket-client>=1.7.0

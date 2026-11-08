@@ -1,0 +1,17 @@
+services:
+  videowm:
+    build: .
+    # 或者直接用已构建镜像
+    # image: videowm:latest
+    container_name: videowm
+    restart: unless-stopped
+    ports:
+      - "8848:8848"
+    environment:
+      # 必填：浏览器打开时要输的访问码
+      VIDEOWM_TOKEN: "${VIDEOWM_TOKEN:-changeme12345678}"
+      VIDEOWM_BASE: "/"
+      # 产物保留时长（分钟），0 = 不自动删
+      VIDEOWM_TTL_MIN: "1440"
+    volumes:
+      - ./media:/data/media

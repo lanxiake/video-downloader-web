@@ -1,0 +1,22 @@
+# 运行产物
+media/
+*.mp4
+*.mp3
+.parse-cache.json
+.token
+__pycache__/
+*.pyc
+
+# 日志
+server.log
+server.err
+*.log
+
+# 虚拟环境
+.venv/
+venv/
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store

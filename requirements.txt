@@ -1,2 +1,8 @@
+# 核心依赖
 yt-dlp>=2026.10.26
 websocket-client>=1.7.0
+
+# 抖音抓流用的浏览器自动化（可选但强烈建议）
+# 装完后还要跑一次：playwright install chromium
+# 不装也能跑，但抖音会走系统 chromium + CDP，需要 apt install chromium
+playwright>=1.40.0

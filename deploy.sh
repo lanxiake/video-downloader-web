@@ -17,6 +17,16 @@ echo "==> 建虚拟环境"
 ./.venv/bin/pip install -q --upgrade pip
 ./.venv/bin/pip install -q -r requirements.txt
 
+echo "==> 装浏览器（抖音抓流要用）"
+if ./.venv/bin/python -c "import playwright" 2>/dev/null; then
+  ./.venv/bin/playwright install chromium 2>&1 | tail -3 || {
+    echo "    浏览器下载失败，抖音会退回到系统 chromium"
+    echo "    手动重试：./.venv/bin/playwright install chromium"
+  }
+else
+  echo "    没装 playwright，抖音需要系统 chromium：apt install chromium"
+fi
+
 echo "==> 生成访问码"
 if [ ! -f .token ]; then
   head -c 9 /dev/urandom | base64 | tr -d '/+=' | head -c 12 > .token

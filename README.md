@@ -56,6 +56,8 @@ bash deploy.sh
 sudo apt install python3 python3-venv ffmpeg
 ```
 
+`deploy.sh` 会顺便装 Playwright 的 chromium（约 180MB），这是抖音能解析的前提。装失败也不致命，会自动退回系统 chromium。
+
 ### 方式 B：Docker
 
 ```bash

@@ -68,6 +68,7 @@
     vw: 0, vh: 0, duration: 0,
     platform: 'other',
     mode: 'crop',            // crop | blur | custom
+    audioOnly: false,
     subMode: 'crop',         // 自定义模式下：crop | blur
     box: null,               // 自定义框（0~1）
     ready: false,
@@ -172,6 +173,7 @@
       S.duration = d.duration || 0;
       S.vw = d.width || 0; S.vh = d.height || 0;
       S.platform = detectPlatform(d.webpage || url);
+      S.audioOnly = !!d.audio_only;
       $('bar').classList.remove('indet');
       $('barFill').style.width = '0%';
       $('pTitle').textContent = d.title || '';

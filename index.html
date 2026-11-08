@@ -188,6 +188,14 @@ textarea::-webkit-scrollbar{width:0}
 .sel-layer.dragging .sel{border-width:2px;
   box-shadow:0 0 0 1px rgba(0,0,0,.7),0 0 26px rgba(0,224,138,.5)}
 .sel-layer.dragging .h::after{filter:brightness(1.25)}
+/* 音频平台：没有画面，把裁切/打码那几块收掉 */
+#editor.audio .frame,
+#editor.audio .custom-only,
+#editor.audio .modes,
+#editor.audio h2,
+#editor.audio .sect { display:none }
+#editor.audio video{position:relative;display:block;width:100%;border-radius:var(--r);background:#000;margin-bottom:14px}
+#editor.audio .meta { display:block; color:var(--accent); margin-bottom:18px }
 /* 自定义模式提示 */
 .custom-only{display:none}
 .custom .custom-only{display:block}
@@ -323,7 +331,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
     <button class="btn" id="go">解析视频</button>
 
     <div class="plats">
-      <span>抖音</span><span>B站</span><span>小红书</span><span>微博</span><span>AcFun</span><span>虎牙</span><span>网易云</span>
+      <span>抖音</span><span>B站</span><span>小红书</span><span>微博</span><span>AcFun</span><span>虎牙</span><span>网易云</span><span>QQ音乐</span><span>喜马拉雅</span>
     </div>
 
     <div class="prog" id="prog">

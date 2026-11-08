@@ -130,6 +130,7 @@ ALLOW_HOSTS = (
     "acfun.cn", "huya.com", "douyu.com", "yy.com",
     "qq.com", "weixin.qq.com", "weishi.qq.com",
     "xiaoyuzhoufm.com", "dedao.cn", "ximalaya.com",
+    "163.com", "music.163.com", "y.qq.com", "kugou.com", "kuwo.cn",
     "instagram.com", "twitter.com", "x.com",
 )
 
@@ -810,6 +811,19 @@ def normalize_xhs(url):
             % (m.group(1), quote(tok, safe=""), quote(src, safe="")))
 
 
+AUDIO_HOSTS = ("music.163.com", "y.qq.com", "kugou.com", "kuwo.cn",
+               "ximalaya.com", "xiaoyuzhoufm.com", "dedao.cn")
+
+
+def is_audio_only(url):
+    """音频平台：能下，但没画面可裁可糊"""
+    try:
+        host = (urlparse(url).hostname or "").lower().replace("www.", "")
+    except Exception:
+        return False
+    return any(host == h or host.endswith("." + h) for h in AUDIO_HOSTS)
+
+
 def parse_url(url):
     """yt-dlp -J 拿元信息"""
     cmd = [YTDLP, "-J", "--no-playlist", "--no-warnings",
@@ -837,6 +851,7 @@ def parse_url(url):
         "uploader": info.get("uploader") or info.get("channel") or "",
         "thumbnail": info.get("thumbnail") or "",
         "extractor": info.get("extractor_key") or info.get("extractor") or "",
+        "audio_only": is_audio_only(url),
         "webpage": info.get("webpage_url") or url,
     }, None
 

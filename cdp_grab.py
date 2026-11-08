@@ -31,12 +31,32 @@ NOISE = ("uuu_", "sprite", ".m3u8", "cover", "avatar", ".jpg", ".png",
          ".webp", "favicon", "logo")
 
 
+def _playwright_chromium():
+    """Playwright 下载的 chromium 也是完整浏览器，能当系统 chromium 用。
+    这样即使 sync_playwright 那套 API 出问题，CDP 这条路还兜得住。"""
+    import glob
+    base = os.path.join(os.path.expanduser("~"), ".cache", "ms-playwright")
+    if not os.path.isdir(base):
+        return ""
+    for pat in ("chromium-*/chrome-linux/chrome",
+                "chromium-*/chrome-linux64/chrome",
+                "chromium-*/chrome-mac/Chromium.app/Contents/MacOS/Chromium",
+                "chromium-*/chrome-win/chrome.exe"):
+        hits = sorted(glob.glob(os.path.join(base, pat)))
+        if hits:
+            return hits[-1]        # 版本号最大的那个
+    return ""
+
+
 def find_chromium():
     """在各平台上找 chromium 可执行文件"""
     for name in ("chromium", "chromium-browser", "google-chrome", "chrome"):
         p = shutil.which(name)
         if p:
             return p
+    pw = _playwright_chromium()
+    if pw:
+        return pw
     candidates = [
         "/data/data/com.termux/files/usr/bin/chromium",   # Termux
         "/usr/bin/chromium",

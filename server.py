@@ -579,7 +579,9 @@ def browser_extract(url):
         except ImportError:
             return None, "这个平台需要浏览器环境，但没找到可用的浏览器组件"
         if not cdp_grab.find_chromium():
-            return None, "这个平台需要浏览器，手机端请先装：pkg install x11-repo && pkg install chromium"
+            return None, ("这个平台需要浏览器。手机端执行：pkg install x11-repo && "
+                          "pkg install chromium；电脑/服务器端执行：pip install playwright && "
+                          "playwright install chromium；或 apt install chromium")
         # 用独立子进程跑（daemon 进程内起 chromium 会踩坑，子进程隔离后稳定）
         cli = os.path.join(BASE, "cdp_cli.py")
         media, title, meta = [], "", {}
@@ -654,8 +656,15 @@ def browser_extract(url):
     try:
         with sync_playwright() as p:
             b = p.chromium.launch(headless=True, args=["--mute-audio", "--no-sandbox"])
-            ctx = b.new_context(user_agent=UA_DESKTOP, locale="zh-CN",
-                                viewport={"width": 1280, "height": 800})
+            # 移动 UA + 移动视口。实测：桌面 UA 在这个页面上会拿到 2 秒的
+            # 预览片（hevc / 222KB），移动 UA 才吐 douyinvod 的正片地址。
+            # 移动 UA 千万别配桌面分辨率，那个组合本身就是特征。
+            mobile = is_douyin(url)
+            ctx = b.new_context(
+                user_agent=(MOBILE_UA if mobile else UA_DESKTOP), locale="zh-CN",
+                viewport=({"width": 390, "height": 844, "isMobile": True,
+                           "device_scale_factor": 3, "has_touch": True}
+                          if mobile else {"width": 1280, "height": 800}))
             page = ctx.new_page()
             page.on("response", on_resp)
             # 播放一下，逼出真实视频流请求

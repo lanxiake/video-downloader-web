@@ -181,6 +181,66 @@ location /videowm/ {
 - [水印位置实测.md](水印位置实测.md) —— 各平台横屏/竖屏水印坐标及测量方法
 - [抖音快手解析研究.md](抖音快手解析研究.md) —— a_bogus 签名逆向、UIFID 风控、CDP 抓流踩坑记录
 
+
+---
+
+## 十、长期运行
+
+### 服务管理
+
+```bash
+systemctl --user status videowm      # 看状态
+systemctl --user restart videowm     # 重启
+journalctl --user -u videowm -f      # 跟日志
+```
+
+`Restart=always` 已配好，进程挂了 3 秒内自动拉起。用户级服务要保证开机自启，需要开 linger：
+
+```bash
+sudo loginctl enable-linger $USER
+```
+
+### 访问码
+
+首次 `deploy.sh` 会生成随机访问码写到 `.token`（权限 600）。改访问码：
+
+```bash
+echo "新的访问码" > .token
+systemctl --user restart videowm
+```
+
+### 磁盘占用
+
+产物默认不自动清理（`VIDEOWM_TTL_MIN=0`）。要开启自动清理：
+
+```bash
+# systemd 里加一行
+Environment=VIDEOWM_TTL_MIN=1440     # 24 小时后删
+```
+
+清理只删产物文件，不动 `media/` 目录本身。
+
+### 内网穿透
+
+如果服务装在没公网 IP 的机器上，cpolar / frp / cloudflared 任选其一。cpolar 示例：
+
+```yaml
+# ~/.cpolar/videowm.yml
+authtoken: 你的token
+tunnels:
+  videowm:
+    proto: http
+    addr: "8848"
+    region: "cn"
+    subdomain: "你的子域名"
+```
+
+```bash
+cpolar start videowm -config=~/.cpolar/videowm.yml
+```
+
+配成 systemd 用户服务后与主服务一起开机自启。
+
 ---
 
 ## 九、许可

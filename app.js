@@ -199,6 +199,10 @@
         S.busy = false;
         if (res.error || !res.file) return fail(res.error || '下载失败');
         S.file = res.file;
+        // 双保险：解析接口的 audio_only 和产物扩展名任一对上就算音频
+        if (!S.audioOnly && /\.(m4a|mp3|aac|flac|wav)$/i.test(res.file || '')) {
+          S.audioOnly = true;
+        }
         S.duration = res.duration || S.duration;
         S.vw = res.width || S.vw;
         S.vh = res.height || S.vh;
@@ -260,6 +264,28 @@
     $('dock').classList.add('on');
 
     S.box = null;                       // 等视频加载出来、知道横竖屏再定
+
+    // 音频平台能下但没有画面，裁切/打码无从谈起——
+    // 把选项整块收起来，只留播放器和下载，别让人对着音频文件找水印
+    if (S.audioOnly) {
+      $('editor').classList.add('audio');
+      $('brandSub').textContent = '· 音频';
+      var av = $('v');
+      av.src = P + 'media/' + encodeURIComponent(S.file);
+      av.onloadeddata = null;
+      av.onerror = null;
+      av.load();
+      $('meta').textContent = fmt(S.duration) + '  ·  音频文件';
+      $('tag').textContent = '音频';
+      var eb = $('exportBtn');
+      if (eb) eb.textContent = '保存到手机';
+      S.ready = false;
+      $('bar').classList.remove('indet');
+      return;
+    }
+    $('editor').classList.remove('audio');
+    var eb2 = $('exportBtn');
+    if (eb2) eb2.textContent = '开始处理';
     $('brandSub').textContent = '· ' + platName();
 
     var v = $('v');
@@ -751,6 +777,19 @@
 
   function doExport() {
     if (S.busy || !S.file) return;
+
+    // 音频没有画面可处理，直接给原文件，别再走一遍 ffmpeg
+    if (S.audioOnly) {
+      var a = document.createElement('a');
+      a.href = P + 'download/' + encodeURIComponent(S.file);
+      a.download = S.file;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setState('已保存', 'ok');
+      return;
+    }
+
     var out = computeOutput();
     var ts = updateTime();
 

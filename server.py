@@ -215,6 +215,7 @@ def cache_put(tid):
             "duration": t.get("duration") or 0, "width": t.get("width") or 0,
             "height": t.get("height") or 0, "uploader": t.get("uploader") or "",
             "extractor": t.get("extractor") or "", "created": t.get("created") or 0,
+            "audio_only": bool(t.get("audio_only")),
             "ts": time.time(),
         }
         # 顺手清掉过期的
@@ -965,15 +966,18 @@ def _download_worker(tid, url):
 
     info = probe(path)
     vcodec = (info.get("vcodec") or "").lower()
-    need_trans = vcodec not in ("h264", "avc1")
+    acoustic = (not vcodec) and bool(info.get("acodec"))
+    need_trans = (not acoustic) and vcodec not in ("h264", "avc1")
 
-    # 纯音频（网易云/QQ音乐/喜马拉雅）：容器里只有音轨，扩展名改成 .m4a，
-    # 免得下载下来是个叫 .mp4 的音频文件，播放器和手机相册都犯迷糊
-    if not vcodec and (info.get("acodec") or ""):
+    # 纯音频（网易云/QQ音乐/喜马拉雅）：容器里只有音轨。
+    # 一是扩展名改成 .m4a（否则手机上是个叫 .mp4 的音频，相册当视频处理）；
+    # 二是绝不能进转码分支——ffmpeg 会把它重新封装成 .mp4，白花时间还改回错扩展名。
+    if acoustic:
         m4a = os.path.join(MEDIA, tid + ".m4a")
         try:
             os.replace(path, m4a)
             path = m4a
+            log("audio only", tid, info.get("acodec"))
         except Exception:
             pass
 
@@ -1376,7 +1380,9 @@ class Handler(BaseHTTPRequestHandler):
                                 "width": _hit.get("width") or 0,
                                 "height": _hit.get("height") or 0,
                                 "uploader": _hit.get("uploader") or "",
-                                "extractor": _hit.get("extractor") or ""})
+                                "extractor": _hit.get("extractor") or "",
+                                "audio_only": bool(_hit.get("audio_only"))
+                                              or is_audio_only(url)})
                     return
 
             # 抖音直接走浏览器（yt-dlp 的 extractor 缺 a_bogus 签名）
@@ -1403,6 +1409,7 @@ class Handler(BaseHTTPRequestHandler):
                      duration=info["duration"], src_width=info["width"],
                      src_height=info["height"], uploader=info["uploader"],
                      extractor=info["extractor"], created=time.time(),
+                     audio_only=bool(info.get("audio_only")),
                      direct=info.get("_direct") or "")
             threading.Thread(target=download_worker, args=(tid, url), daemon=True).start()
             self._json({"ok": True, "task": tid,

@@ -967,6 +967,16 @@ def _download_worker(tid, url):
     vcodec = (info.get("vcodec") or "").lower()
     need_trans = vcodec not in ("h264", "avc1")
 
+    # 纯音频（网易云/QQ音乐/喜马拉雅）：容器里只有音轨，扩展名改成 .m4a，
+    # 免得下载下来是个叫 .mp4 的音频文件，播放器和手机相册都犯迷糊
+    if not vcodec and (info.get("acodec") or ""):
+        m4a = os.path.join(MEDIA, tid + ".m4a")
+        try:
+            os.replace(path, m4a)
+            path = m4a
+        except Exception:
+            pass
+
     if need_trans:
         task_set(tid, status="transcoding", percent=100.0,
                  speed="转码中（%s→h264，手机兼容）" % (vcodec or "未知"), eta="")
